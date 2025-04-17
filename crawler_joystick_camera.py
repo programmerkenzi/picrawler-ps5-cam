@@ -1,5 +1,5 @@
 
-# crawler_joystick_camera.py (picamera2 + official PiCrawler action commands + debug)
+# crawler_joystick_camera.py (restructured for true camera + recording toggling)
 import threading
 import pygame
 import cv2
@@ -15,6 +15,8 @@ robot = Picrawler()
 recording = False
 joy_status = {'x': 0.0, 'y': 0.0}
 button_pressed = False
+show_camera = False
+camera_toggle_pressed = False
 
 # Joystick control thread
 def joystick_control():
@@ -24,7 +26,6 @@ def joystick_control():
     pygame.joystick.init()
 
     try:
-        # Check if any joystick is connected
         if pygame.joystick.get_count() == 0:
             print("🔌 No controller detected. Attempting to connect via Bluetooth...")
             import subprocess
@@ -48,16 +49,11 @@ def joystick_control():
         print("⚠️ No controller found. Please connect your PS5 controller.")
         return
 
-    show_camera = False
-    camera_toggle_pressed = False
-
     while True:
         pygame.event.pump()
         x = joystick.get_axis(0)
         y = joystick.get_axis(1)
 
-
-        # Calculate speed dynamically based on joystick magnitude
         max_speed = 100
         axis_magnitude = max(abs(x), abs(y))
         speed = int(max_speed * axis_magnitude)
@@ -73,7 +69,7 @@ def joystick_control():
             elif x > deadzone:
                 robot.do_action("turn right", 1, speed)
             else:
-                time.sleep(0.1)  # no movement, simulate idle state
+                time.sleep(0.1)
         except Exception as e:
             print(f"[Error] {e}")
 
@@ -85,6 +81,7 @@ def joystick_control():
                 camera_toggle_pressed = True
         else:
             camera_toggle_pressed = False
+
         # Toggle recording with X button (index 0)
         if joystick.get_button(0):
             if not button_pressed:
@@ -94,8 +91,7 @@ def joystick_control():
         else:
             button_pressed = False
 
-
-# Camera streaming and recording thread (using picamera2)
+# Camera streaming and recording thread
 def camera_stream():
     global joy_status, recording, show_camera
 
@@ -106,39 +102,44 @@ def camera_stream():
     picam2.start()
 
     out = None
-    last_show_state = True
+    window_created = False
 
     while True:
-        if not show_camera:
-            if last_show_state:
-                cv2.destroyWindow("PiCamera2 Live")
-                last_show_state = False
-            time.sleep(0.05)
-            continue
-
-        if not last_show_state:
-            print("📷 Opening camera window")
-            last_show_state = True
-
         image = picam2.capture_array()
 
+        if show_camera:
+            # Display joystick axis values on frame
+            cv2.putText(image, f"X: {joy_status['x']:.2f}  Y: {joy_status['y']:.2f}",
+                        (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
-        # Display joystick axis values on frame
-        cv2.putText(image, f"X: {joy_status['x']:.2f}  Y: {joy_status['y']:.2f}",
-                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            # Show recording indicator
+            if recording:
+                cv2.putText(image, "REC", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
-        # Show recording status and write video
+            if not window_created:
+                cv2.namedWindow("PiCamera2 Live", cv2.WINDOW_AUTOSIZE)
+                window_created = True
+
+            cv2.imshow("PiCamera2 Live", image)
+        else:
+            if window_created:
+                try:
+                    if cv2.getWindowProperty("PiCamera2 Live", cv2.WND_PROP_VISIBLE) >= 1:
+                        cv2.destroyWindow("PiCamera2 Live")
+                except:
+                    pass
+                window_created = False
+
+        # Write frame to video only if recording
         if recording:
             if out is None:
                 filename = datetime.now().strftime("record_%Y%m%d_%H%M%S.avi")
                 out = cv2.VideoWriter(filename, cv2.VideoWriter_fourcc(*'XVID'), 20.0, (640, 480))
-            cv2.putText(image, "REC", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
             out.write(image)
         elif out:
             out.release()
             out = None
 
-        cv2.imshow("PiCamera2 Live", image)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
@@ -146,7 +147,7 @@ def camera_stream():
         out.release()
     cv2.destroyAllWindows()
 
-# Start both threads
+# Start threads
 t1 = threading.Thread(target=joystick_control)
 t2 = threading.Thread(target=camera_stream)
 t1.start()
