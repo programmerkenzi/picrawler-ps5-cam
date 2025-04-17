@@ -24,6 +24,23 @@ def joystick_control():
     pygame.joystick.init()
 
     try:
+        # Check if any joystick is connected
+        if pygame.joystick.get_count() == 0:
+            print("🔌 No controller detected. Attempting to connect via Bluetooth...")
+            import subprocess
+            retry_limit = 3
+            for attempt in range(retry_limit):
+                print(f"🔄 Attempt {attempt + 1} to connect controller...")
+                subprocess.call(["./connect_dualsense.sh"])
+                time.sleep(3)
+                pygame.joystick.quit()
+                pygame.joystick.init()
+                if pygame.joystick.get_count() > 0:
+                    break
+            if pygame.joystick.get_count() == 0:
+                print("❌ Failed to connect controller after multiple attempts.")
+                return
+
         joystick = pygame.joystick.Joystick(0)
         joystick.init()
         print(f"🎮 Controller connected: {joystick.get_name()}")
