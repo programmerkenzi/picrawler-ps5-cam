@@ -56,6 +56,49 @@ If the controller is not detected, make sure it's in pairing mode and try again.
 
 ---
 
+## 📦 Auto Start Instructions
+
+This repository includes `systemd` service support to auto-run the PiCrawler joystick + camera control on boot.
+
+### ▶️ Install the service on boot
+
+```bash
+chmod +x install_service.sh
+./install_service.sh
+```
+
+This will:
+
+- Register a `systemd` unit at `/etc/systemd/system/picrawler.service`
+- Start the service immediately
+- Enable it on system boot
+
+---
+
+### 🗑 Uninstall the service
+
+```bash
+chmod +x uninstall_service.sh
+./uninstall_service.sh
+```
+
+This will:
+
+- Stop the service
+- Disable auto-start on boot
+- Remove the `systemd` unit file
+
+---
+
+### 💡 Notes
+
+- The service runs the `crawler_joystick_camera.py` script using `python3`
+- It is executed under the `pi` user
+- You can check the service logs using:
+  ```bash
+  journalctl -u picrawler.service -f
+  ```
+
 ## 🕹 Joystick Control Reference
 
 | Input                 | Action                      |
