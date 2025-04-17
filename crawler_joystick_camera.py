@@ -1,3 +1,4 @@
+# crawler_joystick_camera.py (picamera2 + official PiCrawler action commands + debug)
 import threading
 import pygame
 import cv2
@@ -24,9 +25,9 @@ def joystick_control():
     try:
         joystick = pygame.joystick.Joystick(0)
         joystick.init()
-        print(f"🎮 Controller connected: {joystick.get_name()}")
+        print(f"? Controller connected: {joystick.get_name()}")
     except pygame.error:
-        print("⚠️ No controller found. Please connect your PS5 controller.")
+        print("?? No controller found. Please connect your PS5 controller.")
         return
 
     while True:
@@ -38,35 +39,35 @@ def joystick_control():
 
         print(f"[Joystick] X: {x:.2f}, Y: {y:.2f}")
 
-        speed = 30
+        # Calculate speed dynamically based on joystick magnitude
+        max_speed = 100
+        axis_magnitude = max(abs(x), abs(y))
+        speed = int(max_speed * axis_magnitude)
         deadzone = 0.3
 
-        if abs(y) > deadzone:
-            if y < 0:
-                robot.forward(speed)
-                print("→ Moving Forward")
+        try:
+            if y < -deadzone:
+                robot.do_action("forward", 1, speed)
+                print("? Moving Forward")
+            elif y > deadzone:
+                robot.do_action("backward", 1, speed)
+                print("? Moving Backward")
+            elif x < -deadzone:
+                robot.do_action("turn left", 1, speed)
+                print("? Turning Left")
+            elif x > deadzone:
+                robot.do_action("turn right", 1, speed)
+                print("? Turning Right")
             else:
-                robot.backward(speed)
-                print("→ Moving Backward")
-        elif abs(x) > deadzone:
-            if x < 0:
-                robot.left(speed)
-                print("→ Turning Left")
-            else:
-                robot.right(speed)
-                print("→ Turning Right")
-        else:
-            try:
-                robot.set_action("stand")
-                print("→ Standing")
-            except:
-                pass
+                time.sleep(0.1)  # no movement, simulate idle state
+        except Exception as e:
+            print(f"[Error] {e}")
 
         # Handle toggle button for recording (button 0 = X button)
         if joystick.get_button(0):
             if not button_pressed:
                 recording = not recording
-                print("🎥 Recording: " + ("STARTED" if recording else "STOPPED"))
+                print("? Recording: " + ("STARTED" if recording else "STOPPED"))
                 button_pressed = True
         else:
             button_pressed = False
