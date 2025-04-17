@@ -12,15 +12,22 @@ robot = Picrawler()
 # Global variables
 recording = False
 joy_status = {'x': 0.0, 'y': 0.0}
+button_pressed = False
 
 # Joystick control thread
 def joystick_control():
-    global joy_status, recording
+    global joy_status, recording, button_pressed
 
     pygame.init()
     pygame.joystick.init()
-    joystick = pygame.joystick.Joystick(0)
-    joystick.init()
+
+    try:
+        joystick = pygame.joystick.Joystick(0)
+        joystick.init()
+        print(f"🎮 Controller connected: {joystick.get_name()}")
+    except pygame.error:
+        print("⚠️ No controller found. Please connect your PS5 controller.")
+        return
 
     while True:
         pygame.event.pump()
@@ -29,23 +36,40 @@ def joystick_control():
         joy_status['x'] = x
         joy_status['y'] = y
 
+        print(f"[Joystick] X: {x:.2f}, Y: {y:.2f}")
+
         speed = 30
+        deadzone = 0.3
 
-        if y < -0.5:
-            robot.forward(speed)
-        elif y > 0.5:
-            robot.backward(speed)
-        elif x < -0.5:
-            robot.left(speed)
-        elif x > 0.5:
-            robot.right(speed)
+        if abs(y) > deadzone:
+            if y < 0:
+                robot.forward(speed)
+                print("→ Moving Forward")
+            else:
+                robot.backward(speed)
+                print("→ Moving Backward")
+        elif abs(x) > deadzone:
+            if x < 0:
+                robot.left(speed)
+                print("→ Turning Left")
+            else:
+                robot.right(speed)
+                print("→ Turning Right")
         else:
-            robot.stop()
+            try:
+                robot.set_action("stand")
+                print("→ Standing")
+            except:
+                pass
 
-        # Press X button (index 0) to toggle recording
+        # Handle toggle button for recording (button 0 = X button)
         if joystick.get_button(0):
-            recording = not recording
-            time.sleep(0.5)  # Debounce delay
+            if not button_pressed:
+                recording = not recording
+                print("🎥 Recording: " + ("STARTED" if recording else "STOPPED"))
+                button_pressed = True
+        else:
+            button_pressed = False
 
         time.sleep(0.1)
 
@@ -64,7 +88,7 @@ def camera_stream():
     while True:
         image = picam2.capture_array()
 
-        # Display joystick axis values
+        # Display joystick axis values on frame
         cv2.putText(image, f"X: {joy_status['x']:.2f}  Y: {joy_status['y']:.2f}",
                     (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
