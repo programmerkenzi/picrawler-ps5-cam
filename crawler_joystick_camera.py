@@ -48,7 +48,7 @@ def joystick_control():
         print("⚠️ No controller found. Please connect your PS5 controller.")
         return
 
-    show_camera = False  # Default camera display to OFF
+    show_camera = False
     camera_toggle_pressed = False
 
     while True:
@@ -106,6 +106,7 @@ def camera_stream():
     picam2.start()
 
     out = None
+    last_show_state = True
 
     while True:
         if not show_camera:
