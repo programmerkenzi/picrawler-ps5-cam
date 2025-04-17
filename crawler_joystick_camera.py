@@ -55,8 +55,7 @@ def joystick_control():
         pygame.event.pump()
         x = joystick.get_axis(0)
         y = joystick.get_axis(1)
-        joy_status['x'] = x
-        joy_status['y'] = y
+
 
         # Calculate speed dynamically based on joystick magnitude
         max_speed = 100
@@ -110,10 +109,18 @@ def camera_stream():
 
     while True:
         if not show_camera:
+            if last_show_state:
+                cv2.destroyWindow("PiCamera2 Live")
+                last_show_state = False
             time.sleep(0.05)
             continue
 
+        if not last_show_state:
+            print("📷 Opening camera window")
+            last_show_state = True
+
         image = picam2.capture_array()
+
 
         # Display joystick axis values on frame
         cv2.putText(image, f"X: {joy_status['x']:.2f}  Y: {joy_status['y']:.2f}",
