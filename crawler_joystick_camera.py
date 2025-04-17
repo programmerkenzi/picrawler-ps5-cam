@@ -1,12 +1,9 @@
-
-# crawler_joystick_camera.py
 import threading
 import pygame
 import cv2
 import time
 from datetime import datetime
-from picamera import PiCamera
-from picamera.array import PiRGBArray
+from picamera2 import Picamera2
 from picrawler import Picrawler
 
 # Initialize the PiCrawler robot
@@ -52,19 +49,20 @@ def joystick_control():
 
         time.sleep(0.1)
 
-# Camera streaming and recording thread
+# Camera streaming and recording thread (using picamera2)
 def camera_stream():
     global joy_status, recording
 
-    camera = PiCamera()
-    camera.resolution = (640, 480)
-    raw_capture = PiRGBArray(camera, size=(640, 480))
-    time.sleep(0.1)
+    picam2 = Picamera2()
+    picam2.preview_configuration.main.size = (640, 480)
+    picam2.preview_configuration.main.format = "BGR888"
+    picam2.configure("preview")
+    picam2.start()
 
     out = None
 
-    for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
-        image = frame.array
+    while True:
+        image = picam2.capture_array()
 
         # Display joystick axis values
         cv2.putText(image, f"X: {joy_status['x']:.2f}  Y: {joy_status['y']:.2f}",
@@ -81,13 +79,10 @@ def camera_stream():
             out.release()
             out = None
 
-        cv2.imshow("Pi Camera Live", image)
+        cv2.imshow("PiCamera2 Live", image)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-        raw_capture.truncate(0)
-
-    camera.close()
     if out:
         out.release()
     cv2.destroyAllWindows()
