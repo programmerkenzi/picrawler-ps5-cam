@@ -27,7 +27,7 @@ Press `q` in the OpenCV window to quit. Recordings are saved as `record_YYYYMMDD
 
 ```bash
 sudo apt update
-sudo apt install -y python3-picamera2 python3-opencv python3-pygame
+sudo apt install -y python3-picamera2 python3-opencv python3-pygame picrawler
 
 ```
 
