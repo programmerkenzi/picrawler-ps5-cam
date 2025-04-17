@@ -58,8 +58,6 @@ def joystick_control():
         joy_status['x'] = x
         joy_status['y'] = y
 
-        print(f"[Joystick] X: {x:.2f}, Y: {y:.2f}")
-
         # Calculate speed dynamically based on joystick magnitude
         max_speed = 100
         axis_magnitude = max(abs(x), abs(y))
@@ -88,6 +86,15 @@ def joystick_control():
                 camera_toggle_pressed = True
         else:
             camera_toggle_pressed = False
+        # Toggle recording with X button (index 0)
+        if joystick.get_button(0):
+            if not button_pressed:
+                recording = not recording
+                print("🎥 Recording: " + ("STARTED" if recording else "STOPPED"))
+                button_pressed = True
+        else:
+            button_pressed = False
+
 
 # Camera streaming and recording thread (using picamera2)
 def camera_stream():
