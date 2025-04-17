@@ -52,9 +52,6 @@ def joystick_control():
     camera_toggle_pressed = False
 
     while True:
-        if not show_camera:
-            time.sleep(0.05)
-            continue
         pygame.event.pump()
         x = joystick.get_axis(0)
         y = joystick.get_axis(1)
