@@ -1,3 +1,4 @@
+
 # crawler_joystick_camera.py (picamera2 + official PiCrawler action commands + debug)
 import threading
 import pygame
@@ -17,7 +18,7 @@ button_pressed = False
 
 # Joystick control thread
 def joystick_control():
-    global joy_status, recording, button_pressed
+    global joy_status, recording, button_pressed, show_camera, camera_toggle_pressed
 
     pygame.init()
     pygame.joystick.init()
@@ -25,12 +26,18 @@ def joystick_control():
     try:
         joystick = pygame.joystick.Joystick(0)
         joystick.init()
-        print(f"? Controller connected: {joystick.get_name()}")
+        print(f"🎮 Controller connected: {joystick.get_name()}")
     except pygame.error:
-        print("?? No controller found. Please connect your PS5 controller.")
+        print("⚠️ No controller found. Please connect your PS5 controller.")
         return
 
+    show_camera = False  # Default camera display to OFF
+    camera_toggle_pressed = False
+
     while True:
+        if not show_camera:
+            time.sleep(0.05)
+            continue
         pygame.event.pump()
         x = joystick.get_axis(0)
         y = joystick.get_axis(1)
@@ -48,35 +55,29 @@ def joystick_control():
         try:
             if y < -deadzone:
                 robot.do_action("forward", 1, speed)
-                print("? Moving Forward")
             elif y > deadzone:
                 robot.do_action("backward", 1, speed)
-                print("? Moving Backward")
             elif x < -deadzone:
                 robot.do_action("turn left", 1, speed)
-                print("? Turning Left")
             elif x > deadzone:
                 robot.do_action("turn right", 1, speed)
-                print("? Turning Right")
             else:
                 time.sleep(0.1)  # no movement, simulate idle state
         except Exception as e:
             print(f"[Error] {e}")
 
-        # Handle toggle button for recording (button 0 = X button)
-        if joystick.get_button(0):
-            if not button_pressed:
-                recording = not recording
-                print("? Recording: " + ("STARTED" if recording else "STOPPED"))
-                button_pressed = True
+        # Toggle camera display with Y button (index 3)
+        if joystick.get_button(3):
+            if not camera_toggle_pressed:
+                show_camera = not show_camera
+                print("📷 Camera display: " + ("ON" if show_camera else "OFF"))
+                camera_toggle_pressed = True
         else:
-            button_pressed = False
-
-        time.sleep(0.1)
+            camera_toggle_pressed = False
 
 # Camera streaming and recording thread (using picamera2)
 def camera_stream():
-    global joy_status, recording
+    global joy_status, recording, show_camera
 
     picam2 = Picamera2()
     picam2.preview_configuration.main.size = (640, 480)
@@ -87,6 +88,10 @@ def camera_stream():
     out = None
 
     while True:
+        if not show_camera:
+            time.sleep(0.05)
+            continue
+
         image = picam2.capture_array()
 
         # Display joystick axis values on frame
