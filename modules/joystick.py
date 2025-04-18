@@ -9,6 +9,7 @@ from shared.state import (
     button_pressed,
     camera_toggle_pressed,
 )
+from voice import say
 
 robot = Picrawler()
 
@@ -38,6 +39,7 @@ def joystick_control():
         joystick = pygame.joystick.Joystick(0)
         joystick.init()
         print(f"🎮 Controller connected: {joystick.get_name()}")
+        say("Controller connected")
     except pygame.error:
         print("⚠️ No controller found. Please connect your PS5 controller.")
         return
@@ -72,6 +74,7 @@ def joystick_control():
             if not camera_toggle_pressed:
                 show_camera = not show_camera
                 print("📷 Camera display: " + ("ON" if show_camera else "OFF"))
+                say("Camera on" if show_camera else "Camera off")
                 camera_toggle_pressed = True
         else:
             camera_toggle_pressed = False
@@ -80,6 +83,7 @@ def joystick_control():
             if not button_pressed:
                 recording = not recording
                 print("🎥 Recording: " + ("STARTED" if recording else "STOPPED"))
+                say("Recording started" if recording else "Recording stopped")
                 button_pressed = True
         else:
             button_pressed = False
