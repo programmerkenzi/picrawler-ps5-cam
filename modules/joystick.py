@@ -2,7 +2,7 @@ import pygame
 import time
 import subprocess
 from picrawler import Picrawler
-import shared.state as state  # ✅ 重點
+import shared.state as state
 from modules.voice import say
 
 robot = Picrawler()
@@ -31,9 +31,10 @@ def joystick_control():
         joystick = pygame.joystick.Joystick(0)
         joystick.init()
         print(f"🎮 Controller connected: {joystick.get_name()}")
-        say("Controller connected")
+        say("A controller is connected")
     except pygame.error:
         print("⚠️ No controller found. Please connect your PS5 controller.")
+        say("No controller found. Please connect your PS5 controller.")
         return
 
     while True:
@@ -66,7 +67,7 @@ def joystick_control():
             if not state.camera_toggle_pressed:
                 state.show_camera = not state.show_camera
                 print("📷 Camera display: " + ("ON" if state.show_camera else "OFF"))
-                say("Camera on" if state.show_camera else "Camera off")
+                say("Camera is on" if state.show_camera else "Camera is off")
                 state.camera_toggle_pressed = True
         else:
             state.camera_toggle_pressed = False
