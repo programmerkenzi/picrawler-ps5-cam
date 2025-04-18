@@ -1,7 +1,8 @@
 import cv2
+import time
 from datetime import datetime
 from picamera2 import Picamera2
-from shared.state import joy_status, recording, show_camera
+import shared.state as state
 
 
 def camera_stream():
@@ -17,10 +18,10 @@ def camera_stream():
     while True:
         image = picam2.capture_array()
 
-        if show_camera:
+        if state.show_camera:
             cv2.putText(
                 image,
-                f"X: {joy_status['x']:.2f}  Y: {joy_status['y']:.2f}",
+                f"X: {state.joy_status['x']:.2f}  Y: {state.joy_status['y']:.2f}",
                 (10, 30),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
@@ -28,7 +29,7 @@ def camera_stream():
                 2,
             )
 
-            if recording:
+            if state.recording:
                 cv2.putText(
                     image,
                     "REC",
@@ -56,7 +57,7 @@ def camera_stream():
                     pass
                 window_created = False
 
-        if recording:
+        if state.recording:
             if out is None:
                 filename = datetime.now().strftime("record_%Y%m%d_%H%M%S.avi")
                 out = cv2.VideoWriter(

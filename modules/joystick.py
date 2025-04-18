@@ -2,21 +2,13 @@ import pygame
 import time
 import subprocess
 from picrawler import Picrawler
-from shared.state import (
-    recording,
-    show_camera,
-    joy_status,
-    button_pressed,
-    camera_toggle_pressed,
-)
+import shared.state as state  # ✅ 重點
 from modules.voice import say
 
 robot = Picrawler()
 
 
 def joystick_control():
-    global recording, show_camera, joy_status, button_pressed, camera_toggle_pressed
-
     pygame.init()
     pygame.joystick.init()
 
@@ -48,8 +40,8 @@ def joystick_control():
         pygame.event.pump()
         x = joystick.get_axis(0)
         y = joystick.get_axis(1)
-        joy_status["x"] = x
-        joy_status["y"] = y
+        state.joy_status["x"] = x
+        state.joy_status["y"] = y
 
         max_speed = 100
         axis_magnitude = max(abs(x), abs(y))
@@ -71,19 +63,19 @@ def joystick_control():
             print(f"[Error] {e}")
 
         if joystick.get_button(3):
-            if not camera_toggle_pressed:
-                show_camera = not show_camera
-                print("📷 Camera display: " + ("ON" if show_camera else "OFF"))
-                say("Camera on" if show_camera else "Camera off")
-                camera_toggle_pressed = True
+            if not state.camera_toggle_pressed:
+                state.show_camera = not state.show_camera
+                print("📷 Camera display: " + ("ON" if state.show_camera else "OFF"))
+                say("Camera on" if state.show_camera else "Camera off")
+                state.camera_toggle_pressed = True
         else:
-            camera_toggle_pressed = False
+            state.camera_toggle_pressed = False
 
         if joystick.get_button(0):
-            if not button_pressed:
-                recording = not recording
-                print("🎥 Recording: " + ("STARTED" if recording else "STOPPED"))
-                say("Recording started" if recording else "Recording stopped")
-                button_pressed = True
+            if not state.button_pressed:
+                state.recording = not state.recording
+                print("🎥 Recording: " + ("STARTED" if state.recording else "STOPPED"))
+                say("Recording started" if state.recording else "Recording stopped")
+                state.button_pressed = True
         else:
-            button_pressed = False
+            state.button_pressed = False
