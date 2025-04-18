@@ -12,12 +12,9 @@ if __name__ == "__main__":
 
     t1 = threading.Thread(target=joystick_control)
     t2 = threading.Thread(target=camera_stream)
-    t3 = threading.Thread(target=monitor_obstacles)
 
     t1.start()
     t2.start()
-    t3.start()
 
     t1.join()
     t2.join()
-    t3.join()
