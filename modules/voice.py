@@ -1,4 +1,5 @@
 from robot_hat import Music, TTS
+import threading
 
 music = Music()
 tts = TTS()
@@ -10,4 +11,5 @@ def setup_voice():
 
 
 def say(text: str):
-    tts.say(text)
+    print(f"[?] Saying: {text}")
+    threading.Thread(target=tts.say, args=(text,), daemon=True).start()
