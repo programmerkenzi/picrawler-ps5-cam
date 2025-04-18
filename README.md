@@ -16,7 +16,7 @@ Control SunFounder PiCrawler and view real-time camera feed using a PS5 DualSens
 ## ▶️ How to Run
 
 ```bash
-python3 crawler_joystick_camera.py
+python3 main.py
 ```
 
 Press `q` in the OpenCV window to quit. Recordings are saved as `record_YYYYMMDD_HHMMSS.avi`.
@@ -28,7 +28,6 @@ Press `q` in the OpenCV window to quit. Recordings are saved as `record_YYYYMMDD
 ```bash
 sudo apt update
 sudo apt install -y python3-picamera2 python3-opencv python3-pygame picrawler
-
 ```
 
 ---
@@ -56,7 +55,7 @@ If the controller is not detected, make sure it's in pairing mode and try again.
 
 ---
 
-## 📦 Auto Start Instructions
+## ⚙️ Auto Start Instructions
 
 This repository includes `systemd` service support to auto-run the PiCrawler joystick + camera control on boot.
 
@@ -92,12 +91,14 @@ This will:
 
 ### 💡 Notes
 
-- The service runs the `crawler_joystick_camera.py` script using `python3`
-- It is executed under the `pi` user
+- The service runs the `main.py` script using `python3`
+- It is executed under the `pi` user by default (or current user if customized)
 - You can check the service logs using:
   ```bash
   journalctl -u picrawler.service -f
   ```
+
+---
 
 ## 🕹 Joystick Control Reference
 
@@ -106,6 +107,7 @@ This will:
 | Left Stick Up/Down    | Move Forward / Backward     |
 | Left Stick Left/Right | Turn Left / Right           |
 | X Button (Button 0)   | Toggle Start/Stop Recording |
+| ⬜ Button (Button 3)  | Toggle Camera Display       |
 
 ---
 
