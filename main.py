@@ -1,7 +1,7 @@
 import threading
 from modules.joystick import joystick_control
 from modules.camera import camera_stream
-from modules.voice import setup_voice, say
+from modules.voice import say
 from modules.utils import wait_for_audio_ready
 from modules.obstacle_warning import monitor_obstacles
 
