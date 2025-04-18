@@ -1,6 +1,12 @@
 #!/bin/bash
-SERVICE_PATH="/etc/systemd/system/picrawler.service"
-SCRIPT_PATH="/home/pi/picrawler-ps5-cam/crawler_joystick_camera.py"
+
+SERVICE_NAME=picrawler.service
+SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME"
+
+# Auto-detect current user if not explicitly set
+USER=${1:-$(whoami)}
+SCRIPT_DIR="/home/$USER/picrawler-ps5-cam"
+SCRIPT_PATH="$SCRIPT_DIR/main.py"
 
 echo "[🔧] Creating systemd service for PiCrawler..."
 
@@ -12,8 +18,8 @@ Wants=network.target bluetooth.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/picrawler-ps5-cam
+User=$USER
+WorkingDirectory=$SCRIPT_DIR
 ExecStart=/usr/bin/python3 $SCRIPT_PATH
 Restart=on-failure
 RestartSec=5
@@ -24,8 +30,9 @@ StandardError=journal
 WantedBy=multi-user.target
 EOF
 
+sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
-sudo systemctl enable picrawler.service
-sudo systemctl start picrawler.service
+sudo systemctl enable $SERVICE_NAME
+sudo systemctl start $SERVICE_NAME
 
-echo "[✅] Service installed and started successfully."
+echo "[✅] Service '$SERVICE_NAME' installed and started successfully."
