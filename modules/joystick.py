@@ -1,4 +1,3 @@
-# joystick.py with front/back leg height control using L1/L2 and R1/R2, L3 to reset
 import pygame
 import time
 import subprocess
@@ -107,21 +106,19 @@ def joystick_control():
             front_leg_angle = clamp(front_leg_angle + 1, NORMAL_HEIGHT, RAISED_MAX)
         elif joystick.get_button(6):
             front_leg_angle = clamp(front_leg_angle - 1, NORMAL_HEIGHT, RAISED_MAX)
-        robot.set_leg_angle(0, [90, front_leg_angle, 90])
-        robot.set_leg_angle(1, [90, front_leg_angle, 90])
+        robot.set_angle([90, front_leg_angle, 90], [0, 1])  # LF, RF
 
         # R1 (button 5) raises back legs, R2 (button 7) lowers them
         if joystick.get_button(5):
             back_leg_angle = clamp(back_leg_angle + 1, NORMAL_HEIGHT, RAISED_MAX)
         elif joystick.get_button(7):
             back_leg_angle = clamp(back_leg_angle - 1, NORMAL_HEIGHT, RAISED_MAX)
-        robot.set_leg_angle(2, [90, back_leg_angle, 90])
-        robot.set_leg_angle(3, [90, back_leg_angle, 90])
+        robot.set_angle([90, back_leg_angle, 90], [2, 3])  # LB, RB
 
         # L3 (button 10) resets all legs to normal
         if joystick.get_button(10):
             front_leg_angle = back_leg_angle = NORMAL_HEIGHT
             for i in range(4):
-                robot.set_leg_angle(i, [90, NORMAL_HEIGHT, 90])
+                robot.set_angle([90, NORMAL_HEIGHT, 90], [i])
             say("Legs reset")
             time.sleep(0.3)
